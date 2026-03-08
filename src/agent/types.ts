@@ -1,8 +1,43 @@
+import type { GroupContext } from './prompts.js';
+
+// ============================================================================
+// Channel Profiles
+// ============================================================================
+
+/**
+ * Per-channel formatting profile that controls how the agent responds.
+ * Add new entries to CHANNEL_PROFILES in prompts.ts when adding channels.
+ */
+export interface ChannelProfile {
+  /** Human-readable label used in the system prompt preamble (e.g., "CLI", "WhatsApp") */
+  label: string;
+  /** One-liner describing the output surface, injected after the date line */
+  preamble: string;
+  /** Bullet points for the ## Behavior section */
+  behavior: string[];
+  /** Bullet points for the ## Response Format section */
+  responseFormat: string[];
+  /** Full tables instruction block, or null to omit the section entirely */
+  tables: string | null;
+}
+
+// ============================================================================
+// Approval
+// ============================================================================
+
+/**
+ * User's response to a tool approval prompt.
+ * - 'allow-once': approve this single invocation
+ * - 'allow-session': approve all invocations of this tool for the rest of the session
+ * - 'deny': reject and immediately end the agent's turn
+ */
+export type ApprovalDecision = 'allow-once' | 'allow-session' | 'deny';
+
 /**
  * Agent configuration
  */
 export interface AgentConfig {
-  /** Model to use for LLM calls (e.g., 'gpt-5.2', 'claude-sonnet-4-20250514') */
+  /** Model to use for LLM calls (e.g., 'gpt-5.4', 'claude-sonnet-4-20250514') */
   model?: string;
   /** Model provider (e.g., 'openai', 'anthropic', 'google', 'ollama') */
   modelProvider?: string;
@@ -10,6 +45,14 @@ export interface AgentConfig {
   maxIterations?: number;
   /** AbortSignal for cancelling agent execution */
   signal?: AbortSignal;
+  /** Delivery channel (e.g., 'whatsapp', 'cli') — affects response formatting */
+  channel?: string;
+  /** Group chat context — when set, adds group-specific instructions to system prompt */
+  groupContext?: GroupContext;
+  /** Called when a tool needs explicit user approval to proceed */
+  requestToolApproval?: (request: { tool: string; args: Record<string, unknown> }) => Promise<ApprovalDecision>;
+  /** Shared set of tool names that have been session-approved (persists across queries) */
+  sessionApprovedTools?: Set<string>;
 }
 
 /**
@@ -83,6 +126,25 @@ export interface ToolLimitEvent {
 }
 
 /**
+ * Tool approval decision event for sensitive tools.
+ */
+export interface ToolApprovalEvent {
+  type: 'tool_approval';
+  tool: string;
+  args: Record<string, unknown>;
+  approved: ApprovalDecision;
+}
+
+/**
+ * Tool execution was denied by user approval flow.
+ */
+export interface ToolDeniedEvent {
+  type: 'tool_denied';
+  tool: string;
+  args: Record<string, unknown>;
+}
+
+/**
  * Context was cleared due to exceeding token threshold (Anthropic-style)
  */
 export interface ContextClearedEvent {
@@ -91,13 +153,6 @@ export interface ContextClearedEvent {
   clearedCount: number;
   /** Number of most recent tool results that were kept */
   keptCount: number;
-}
-
-/**
- * Final answer generation started
- */
-export interface AnswerStartEvent {
-  type: 'answer_start';
 }
 
 /**
@@ -131,7 +186,20 @@ export type AgentEvent =
   | ToolProgressEvent
   | ToolEndEvent
   | ToolErrorEvent
+  | ToolApprovalEvent
+  | ToolDeniedEvent
   | ToolLimitEvent
   | ContextClearedEvent
-  | AnswerStartEvent
   | DoneEvent;
+
+/**
+ * Aggregated event used by the CLI history renderer.
+ * Combines lifecycle events (tool_start/tool_end/tool_error) into a single display row.
+ */
+export interface DisplayEvent {
+  id: string;
+  event: AgentEvent;
+  completed?: boolean;
+  endEvent?: AgentEvent;
+  progressMessage?: string;
+}

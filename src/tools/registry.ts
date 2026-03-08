@@ -1,9 +1,16 @@
 import { StructuredToolInterface } from '@langchain/core/tools';
 import { createFinancialSearch, createFinancialMetrics, createReadFilings } from './finance/index.js';
-import { exaSearch, tavilySearch } from './search/index.js';
+import { exaSearch, perplexitySearch, tavilySearch, WEB_SEARCH_DESCRIPTION, xSearchTool, X_SEARCH_DESCRIPTION } from './search/index.js';
 import { skillTool, SKILL_TOOL_DESCRIPTION } from './skill.js';
-import { browserTool } from './browser/index.js';
-import { FINANCIAL_SEARCH_DESCRIPTION, FINANCIAL_METRICS_DESCRIPTION, WEB_SEARCH_DESCRIPTION, READ_FILINGS_DESCRIPTION, BROWSER_DESCRIPTION } from './descriptions/index.js';
+import { webFetchTool, WEB_FETCH_DESCRIPTION } from './fetch/web-fetch.js';
+import { browserTool, BROWSER_DESCRIPTION } from './browser/browser.js';
+import { readFileTool, READ_FILE_DESCRIPTION } from './filesystem/read-file.js';
+import { writeFileTool, WRITE_FILE_DESCRIPTION } from './filesystem/write-file.js';
+import { editFileTool, EDIT_FILE_DESCRIPTION } from './filesystem/edit-file.js';
+import { FINANCIAL_SEARCH_DESCRIPTION } from './finance/financial-search.js';
+import { FINANCIAL_METRICS_DESCRIPTION } from './finance/financial-metrics.js';
+import { READ_FILINGS_DESCRIPTION } from './finance/read-filings.js';
+import { heartbeatTool, HEARTBEAT_TOOL_DESCRIPTION } from './heartbeat/heartbeat-tool.js';
 import { discoverSkills } from '../skills/index.js';
 
 /**
@@ -43,17 +50,48 @@ export function getToolRegistry(model: string): RegisteredTool[] {
       description: READ_FILINGS_DESCRIPTION,
     },
     {
+      name: 'web_fetch',
+      tool: webFetchTool,
+      description: WEB_FETCH_DESCRIPTION,
+    },
+    {
       name: 'browser',
       tool: browserTool,
       description: BROWSER_DESCRIPTION,
     },
+    {
+      name: 'read_file',
+      tool: readFileTool,
+      description: READ_FILE_DESCRIPTION,
+    },
+    {
+      name: 'write_file',
+      tool: writeFileTool,
+      description: WRITE_FILE_DESCRIPTION,
+    },
+    {
+      name: 'edit_file',
+      tool: editFileTool,
+      description: EDIT_FILE_DESCRIPTION,
+    },
+    {
+      name: 'heartbeat',
+      tool: heartbeatTool,
+      description: HEARTBEAT_TOOL_DESCRIPTION,
+    },
   ];
 
-  // Include web_search if Exa or Tavily API key is configured (Exa preferred)
+  // Include web_search if Exa, Perplexity, or Tavily API key is configured (Exa → Perplexity → Tavily)
   if (process.env.EXASEARCH_API_KEY) {
     tools.push({
       name: 'web_search',
       tool: exaSearch,
+      description: WEB_SEARCH_DESCRIPTION,
+    });
+  } else if (process.env.PERPLEXITY_API_KEY) {
+    tools.push({
+      name: 'web_search',
+      tool: perplexitySearch,
       description: WEB_SEARCH_DESCRIPTION,
     });
   } else if (process.env.TAVILY_API_KEY) {
@@ -61,6 +99,15 @@ export function getToolRegistry(model: string): RegisteredTool[] {
       name: 'web_search',
       tool: tavilySearch,
       description: WEB_SEARCH_DESCRIPTION,
+    });
+  }
+
+  // Include x_search if X Bearer Token is configured
+  if (process.env.X_BEARER_TOKEN) {
+    tools.push({
+      name: 'x_search',
+      tool: xSearchTool,
+      description: X_SEARCH_DESCRIPTION,
     });
   }
 

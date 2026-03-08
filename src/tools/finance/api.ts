@@ -8,6 +8,38 @@ export interface ApiResponse {
   url: string;
 }
 
+/**
+ * Remove redundant fields from API payloads before they are returned to the LLM.
+ * This reduces token usage while preserving the financial metrics needed for analysis.
+ */
+export function stripFieldsDeep(value: unknown, fields: readonly string[]): unknown {
+  const fieldsToStrip = new Set(fields);
+
+  function walk(node: unknown): unknown {
+    if (Array.isArray(node)) {
+      return node.map(walk);
+    }
+
+    if (!node || typeof node !== 'object') {
+      return node;
+    }
+
+    const record = node as Record<string, unknown>;
+    const cleaned: Record<string, unknown> = {};
+
+    for (const [key, child] of Object.entries(record)) {
+      if (fieldsToStrip.has(key)) {
+        continue;
+      }
+      cleaned[key] = walk(child);
+    }
+
+    return cleaned;
+  }
+
+  return walk(value);
+}
+
 export async function callApi(
   endpoint: string,
   params: Record<string, string | number | string[] | undefined>,
@@ -27,7 +59,7 @@ export async function callApi(
   const FINANCIAL_DATASETS_API_KEY = process.env.FINANCIAL_DATASETS_API_KEY;
 
   if (!FINANCIAL_DATASETS_API_KEY) {
-    logger.warn(`API call without key: ${label}`);
+    logger.warn(`[Financial Datasets API] call without key: ${label}`);
   }
 
   const url = new URL(`${BASE_URL}${endpoint}`);
@@ -52,20 +84,20 @@ export async function callApi(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error(`API network error: ${label} — ${message}`);
-    throw new Error(`API request failed for ${label}: ${message}`);
+    logger.error(`[Financial Datasets API] network error: ${label} — ${message}`);
+    throw new Error(`[Financial Datasets API] request failed for ${label}: ${message}`);
   }
 
   if (!response.ok) {
     const detail = `${response.status} ${response.statusText}`;
-    logger.error(`API error: ${label} — ${detail}`);
-    throw new Error(`API request failed: ${detail}`);
+    logger.error(`[Financial Datasets API] error: ${label} — ${detail}`);
+    throw new Error(`[Financial Datasets API] request failed: ${detail}`);
   }
 
   const data = await response.json().catch(() => {
     const detail = `invalid JSON (${response.status} ${response.statusText})`;
-    logger.error(`API parse error: ${label} — ${detail}`);
-    throw new Error(`API request failed: ${detail}`);
+    logger.error(`[Financial Datasets API] parse error: ${label} — ${detail}`);
+    throw new Error(`[Financial Datasets API] request failed: ${detail}`);
   });
 
   // Persist for future requests when the caller marked the response as cacheable
