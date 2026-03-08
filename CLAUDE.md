@@ -1,16 +1,19 @@
 # Dexter - AI 金融研究代理
 
-> 更新时间：2026-02-10 19:00:00
+> 更新时间：2026-03-08 12:00:00
 
 ## 项目愿景
 
-Dexter 是一个基于 CLI 的自主 AI 金融研究代理，采用任务规划、自我验证和实时市场数据分析技术来处理复杂的金融研究问题。项目采用 **TypeScript + Ink（React for CLI）+ LangChain** 架构，专为金融领域深度研究设计。
+Dexter 是一个基于 CLI 的自主 AI 金融研究代理，采用任务规划、自我验证和实时市场数据分析技术来处理复杂的金融研究问题。项目采用 **TypeScript + pi-mono TUI + LangChain** 架构，专为金融领域深度研究设计。
 
 **核心特性：**
 - 智能任务规划：将复杂查询自动分解为结构化研究步骤
 - 自主执行：选择并执行正确的工具以获取金融数据
 - 自我验证：检查自身工作并迭代直到任务完成
 - 实时金融数据：访问利润表、资产负债表和现金流量表
+- 多渠道支持：WhatsApp 集成、群聊功能
+- 公众情绪研究：x_search 工具分析社交媒体情绪
+- 心跳功能：实时市场数据监控
 - 安全特性：内置循环检测和步数限制以防止过度执行
 
 ---
@@ -24,33 +27,43 @@ graph TD
     A --> D["文档"];
 
     B --> E["agent/ - Agent 核心逻辑"];
-    B --> F["components/ - Ink UI 组件"];
-    B --> G["hooks/ - React Hooks"];
-    B --> H["model/ - LLM 抽象层"];
-    B --> I["tools/ - 工具集"];
-    B --> J["skills/ - 技能系统"];
-    B --> K["utils/ - 工具函数"];
-    B --> L["evals/ - 评估系统"];
-    B --> M["cli.tsx - CLI 入口"];
+    B --> F["components/ - pi-mono UI 组件"];
+    B --> G["controllers/ - 控制器"];
+    B --> H["gateway/ - Gateway 系统"];
+    B --> I["model/ - LLM 抽象层"];
+    B --> J["tools/ - 工具集"];
+    B --> K["skills/ - 技能系统"];
+    B --> L["utils/ - 工具函数"];
+    B --> M["evals/ - 评估系统"];
+    B --> N["cli.ts - CLI 入口"];
 
-    I --> N["finance/ - 金融数据工具"];
-    I --> O["search/ - 搜索工具"];
-    I --> P["browser/ - 浏览器自动化"];
-    I --> Q["descriptions/ - 工具描述"];
+    J --> O["finance/ - 金融数据工具"];
+    J --> P["search/ - 搜索工具"];
+    J --> Q["browser/ - 浏览器自动化"];
+    J --> R["fetch/ - 网络获取工具"];
+    J --> S["filesystem/ - 文件系统工具"];
+    J --> T["heartbeat/ - 心跳工具"];
 
-    J --> R["dcf/ - DCF 估值技能"];
+    H --> U["channels/ - 渠道管理"];
+    H --> V["group/ - 群聊功能"];
+    H --> W["heartbeat/ - 心跳功能"];
+    H --> X["routing/ - 路由解析"];
+
+    K --> Y["dcf/ - DCF 估值技能"];
+    K --> Z["x-research/ - X 搜索技能"];
 
     click E "./src/agent/CLAUDE.md" "查看 Agent 模块详情"
     click F "./src/components/CLAUDE.md" "查看 Components 模块详情"
-    click G "./src/hooks/CLAUDE.md" "查看 Hooks 模块详情"
-    click H "./src/model/CLAUDE.md" "查看 Model 模块详情"
-    click I "./src/tools/CLAUDE.md" "查看 Tools 模块详情"
-    click J "./src/skills/CLAUDE.md" "查看 Skills 模块详情"
-    click K "./src/utils/CLAUDE.md" "查看 Utils 模块详情"
-    click L "./src/evals/CLAUDE.md" "查看 Evals 模块详情"
-    click N "./src/tools/finance/CLAUDE.md" "查看 Finance 子模块详情"
-    click O "./src/tools/search/CLAUDE.md" "查看 Search 子模块详情"
-    click P "./src/tools/browser/CLAUDE.md" "查看 Browser 子模块详情"
+    click G "./src/controllers/CLAUDE.md" "查看 Controllers 模块详情"
+    click H "./src/gateway/CLAUDE.md" "查看 Gateway 模块详情"
+    click I "./src/model/CLAUDE.md" "查看 Model 模块详情"
+    click J "./src/tools/CLAUDE.md" "查看 Tools 模块详情"
+    click K "./src/skills/CLAUDE.md" "查看 Skills 模块详情"
+    click L "./src/utils/CLAUDE.md" "查看 Utils 模块详情"
+    click M "./src/evals/CLAUDE.md" "查看 Evals 模块详情"
+    click O "./src/tools/finance/CLAUDE.md" "查看 Finance 子模块详情"
+    click P "./src/tools/search/CLAUDE.md" "查看 Search 子模块详情"
+    click Q "./src/tools/browser/CLAUDE.md" "查看 Browser 子模块详情"
 ```
 
 ---
@@ -63,7 +76,7 @@ graph TD
 |------|------|------|
 | **运行时** | Bun (v1.0+) | 主要运行时环境 |
 | **语言** | TypeScript | ESM 模式，严格类型检查 |
-| **UI 框架** | Ink (React for CLI) | 终端用户界面 |
+| **UI 框架** | pi-mono | 终端用户界面 |
 | **AI 框架** | LangChain | LLM 抽象与工具绑定 |
 | **浏览器自动化** | Playwright | 网页抓取与交互 |
 | **测试框架** | Bun Test | 内置测试运行器 |
@@ -71,13 +84,14 @@ graph TD
 
 ### LLM 提供商支持
 
-- **OpenAI** (默认): `gpt-5.2`
+- **OpenAI** (默认): `gpt-5.4`, `gpt-5.2`
 - **Anthropic**: `claude-*` 系列
 - **Google**: `gemini-*` 系列
 - **xAI (Grok)**: `grok-*` 系列
 - **OpenRouter**: `openrouter:*` 前缀
 - **Moonshot**: `kimi-*` 系列
 - **DeepSeek**: `deepseek-*` 系列
+- **Perplexity**: `perplexity-*` 系列（网络搜索）
 - **Ollama**: 本地模型 `ollama:*` 前缀
 
 **快速模型映射**（用于轻量级任务）：
@@ -92,16 +106,23 @@ graph TD
 
 | 模块路径 | 主要职责 | 关键文件 | 入口文件 |
 |---------|---------|---------|---------|
-| **agent** | Agent 循环核心、提示词、上下文管理 | `agent.ts`, `prompts.ts`, `scratchpad.ts`, `types.ts` | `src/agent/index.ts` |
-| **components** | Ink CLI UI 组件 | `cli.tsx`, `Input.tsx`, `ModelSelector.tsx`, `AgentEventView.tsx` | `src/components/index.ts` |
-| **hooks** | React Hooks（Agent 运行、模型选择、历史记录、调试、文本缓冲） | `useAgentRunner.ts`, `useModelSelection.ts`, `useInputHistory.ts`, `useDebugLogs.ts`, `useTextBuffer.ts` | - |
-| **model** | 多提供商 LLM 抽象层 | `llm.ts` | `src/model/llm.ts` |
-| **tools** | 工具注册与实现 | `registry.ts`, `finance/*`, `browser/*`, `search/*` | `src/tools/registry.ts` |
+| **agent** | Agent 循环核心、提示词、上下文管理（已重构） | `agent.ts`, `prompts.ts`, `scratchpad.ts`, `run-context.ts`, `tool-executor.ts` | `src/agent/index.ts` |
+| **components** | pi-mono UI 组件 | `chat-log.ts`, `tool-event.ts`, `working-indicator.ts` | `src/components/index.ts` |
+| **controllers** | 控制器层（Agent 运行、输入历史、模型选择） | `agent-runner.ts`, `input-history.ts`, `model-selection.ts` | `src/controllers/index.ts` |
+| **gateway** | Gateway 系统（WhatsApp、群聊、心跳） | `gateway.ts`, `channels/manager.ts`, `routing/resolve-route.ts` | `src/gateway/index.ts` |
+| **gateway/channels** | 渠道管理（WhatsApp） | `whatsapp/inbound.ts`, `whatsapp/outbound.ts` | `src/gateway/channels/index.ts` |
+| **gateway/group** | 群聊功能（历史、成员追踪、@提及） | `history-buffer.ts`, `member-tracker.ts`, `mention-detection.ts` | `src/gateway/group/index.ts` |
+| **gateway/heartbeat** | 心跳功能（实时数据监控） | `runner.ts`, `prompt.ts`, `suppression.ts` | `src/gateway/heartbeat/index.ts` |
+| **model** | 多提供商 LLM 抽象层 | `llm.ts`, `providers.ts` | `src/model/llm.ts` |
+| **tools** | 工具注册与实现 | `registry.ts`, `finance/*`, `browser/*`, `search/*`, `fetch/*`, `filesystem/*`, `heartbeat/*` | `src/tools/registry.ts` |
 | **tools/browser** | Playwright 浏览器自动化 | `browser.ts` | `src/tools/browser/index.ts` |
-| **tools/search** | 网络搜索（Exa/Tavily） | `exa.ts`, `tavily.ts` | `src/tools/search/index.ts` |
-| **tools/finance** | 金融数据工具 | `financial-search.ts`, `read-filings.ts`, `financial-metrics.ts` | `src/tools/finance/index.ts` |
-| **skills** | SKILL.md 工作流系统 | `registry.ts`, `loader.ts`, `dcf/SKILL.md` | `src/skills/index.ts` |
-| **utils** | 工具函数（缓存、令牌估算、配置） | `cache.ts`, `tokens.ts`, `config.ts`, `env.ts` | `src/utils/index.ts` |
+| **tools/search** | 网络搜索（Exa/Tavily/Perplexity/x-search） | `exa.ts`, `tavily.ts`, `perplexity.ts`, `x-search.ts` | `src/tools/search/index.ts` |
+| **tools/finance** | 金融数据工具 | `financial-search.ts`, `read-filings.ts`, `financial-metrics.ts`, `stock-price.ts` | `src/tools/finance/index.ts` |
+| **tools/fetch** | 网络内容获取工具 | `web-fetch.ts`, `external-content.ts`, `cache.ts` | `src/tools/fetch/index.ts` |
+| **tools/filesystem** | 文件系统工具（读/写/编辑） | `read-file.ts`, `write-file.ts`, `edit-file.ts` | `src/tools/filesystem/index.ts` |
+| **tools/heartbeat** | 心跳工具 | `heartbeat-tool.ts` | `src/tools/heartbeat/index.ts` |
+| **skills** | SKILL.md 工作流系统 | `registry.ts`, `loader.ts`, `dcf/SKILL.md`, `x-research/SKILL.md` | `src/skills/index.ts` |
+| **utils** | 工具函数（缓存、错误处理、历史上下文） | `cache.ts`, `errors.ts`, `history-context.ts`, `model.ts` | `src/utils/index.ts` |
 | **evals** | LangSmith 评估系统 | `run.ts`, `dataset/finance_agent.csv` | `src/evals/run.ts` |
 
 ---
@@ -131,7 +152,7 @@ graph TD
 | 命令 | 说明 |
 |------|------|
 | `bun start` | 运行交互式 CLI |
-| `bun run src/index.tsx` | 直接运行入口文件 |
+| `bun run src/cli.ts` | 直接运行入口文件 |
 | `bun dev` | 监听模式（开发） |
 | `bun run typecheck` | TypeScript 类型检查 |
 | `bun test` | 运行测试套件 |
@@ -154,7 +175,6 @@ graph TD
 ### 代码风格
 
 - **语言**: TypeScript (ESM, strict mode)
-- **JSX**: React (Ink for CLI 渲染)
 - **类型**: 严格类型检查，避免 `any`
 - **文件大小**: 保持简洁，提取助手函数而非重复代码
 - **注释**: 为棘手或非显而易见的逻辑添加简短注释
@@ -182,10 +202,15 @@ graph TD
 
 #### Agent 循环（`src/agent/agent.ts`）
 
+**架构重构（2026-03）**: Agent 模块已拆分为：
+- `run-context.ts`: 运行时上下文管理
+- `tool-executor.ts`: 工具执行逻辑
+- `channels.ts`: 通道抽象层
+
 1. **初始化**: 创建带工具的 Agent 实例
 2. **迭代循环**（默认最多 10 次）：
    - 调用 LLM 获取响应
-   - 如果有工具调用：执行工具并添加到 Scratchpad
+   - 如果有工具调用：通过 ToolExecutor 执行并添加到 Scratchpad
    - 如果无工具调用：生成最终答案
 3. **上下文管理**: Anthropic 风格 - 超过阈值时清除最旧的工具结果
 4. **事件流**: 实时生成 `thinking`、`tool_start`、`tool_end`、`done` 等事件用于 UI 更新
@@ -204,13 +229,17 @@ graph TD
 - `financial_search`: 金融数据查询主入口（价格、指标、文件）
 - `financial_metrics`: 直接指标查找（收入、市值等）
 - `read_filings`: SEC 文件阅读器（10-K、10-Q、8-K）
-- `web_search`: 通用网络搜索（Exa 优先，Tavily 回退）
+- `web_search`: 通用网络搜索（Exa 优先，Tavily/Perplexity 回退）
+- `x_search`: X (Twitter) 搜索，公众情绪分析
+- `web_fetch`: 网页内容获取工具
+- `read_file`/`write_file`/`edit_file`: 文件系统操作
+- `heartbeat`: 心跳工具（实时数据监控）
 - `browser`: 基于 Playwright 的网页抓取
 - `skill`: 调用 SKILL.md 定义的工作流
 
 **工具注册**（`src/tools/registry.ts`）:
 - 根据环境变量条件包含工具
-- 为系统提示注入富描述
+- 工具描述已内联到工具定义，移除 descriptions/ 目录
 
 #### 技能系统（`src/skills/`）
 
@@ -221,6 +250,7 @@ graph TD
 
 **内置技能**:
 - `dcf-valuation`: DCF 估值分析（`src/skills/dcf/SKILL.md`）
+- `x-research`: X (Twitter) 公众情绪研究（`src/skills/x-research/SKILL.md`）
 
 ### 开发工作流程
 
@@ -229,7 +259,7 @@ graph TD
 1. 在 `src/tools/finance/`（或其他类别）创建工具文件
 2. 使用 LangChain 的 `DynamicStructuredTool` 或 `StructuredTool`
 3. 在 `src/tools/registry.ts` 中注册工具
-4. 在 `src/tools/descriptions/` 添加富描述
+4. 工具描述直接内联在工具定义中
 5. 更新 `README.md`（如需要）
 
 #### 添加新技能
@@ -336,6 +366,23 @@ sequenceDiagram
 
 ## 变更记录
 
+### 2026-03-08 12:00:00 - Upstream 同步与重大架构更新
+- 从 virattt/dexter upstream 同步 76 个新提交
+- **重大架构变更**: Ink UI 迁移到 pi-mono TUI
+- **Agent 模块重构**: 拆分为 run-context 和 tool-executor
+- **新增 Gateway 系统**: WhatsApp 渠道支持、群聊功能、路由解析
+- **新功能**:
+  - x_search 工具和 x-research 技能（公众情绪研究）
+  - Perplexity 搜索提供商支持
+  - gpt-5.4 模型支持
+  - 心跳功能（实时市场数据监控）
+  - 文件系统工具（read/write/edit-file）
+  - web-fetch 工具（外部内容获取）
+- **移除模块**: React Hooks（被控制器替代）
+- **移除模块**: tools/descriptions/（描述内联到工具定义）
+- **新增模块**: controllers/、gateway/、tools/fetch/、tools/filesystem/、tools/heartbeat/
+- **版本更新**: v2026.3.5
+
 ### 2026-02-10 19:00:00 - 文档完善与子模块覆盖
 - 创建 Hooks 模块独立文档（`src/hooks/CLAUDE.md`）
 - 创建 Browser 工具子模块文档（`src/tools/browser/CLAUDE.md`）
@@ -364,4 +411,4 @@ sequenceDiagram
 - **问题反馈**: GitHub Issues
 - **许可证**: MIT License
 
-*本文档由 AI 上下文初始化系统自动生成，最后更新：2026-02-10 19:00:00*
+*本文档由 AI 上下文初始化系统自动生成，最后更新：2026-03-08 12:00:00*
