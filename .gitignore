@@ -58,5 +58,10 @@ yarn-error.log*
 
 logs/
 coverage.json
+
+# Local config files
 entities.json
 mempalace.yaml
+
+# Scratchpad files
+scratchpads/*
