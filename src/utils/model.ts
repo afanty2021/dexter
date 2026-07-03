@@ -18,7 +18,8 @@ const PROVIDER_MODELS: Record<string, Model[]> = {
   ],
   anthropic: [
     { id: 'claude-sonnet-4-6', displayName: 'Sonnet 4.6' },
-    { id: 'claude-opus-4-7', displayName: 'Opus 4.7' },
+    { id: 'claude-opus-4-8', displayName: 'Opus 4.8' },
+    { id: 'claude-fable-5', displayName: 'Fable 5' },
   ],
   google: [
     { id: 'gemini-3-flash-preview', displayName: 'Gemini 3 Flash' },
@@ -56,7 +57,7 @@ export function getDefaultModelForProvider(providerId: string): string | undefin
 }
 
 export function getModelDisplayName(modelId: string): string {
-  const normalizedId = modelId.replace(/^(ollama|openrouter):/, '');
+  const normalizedId = modelId.replace(/^(ollama|ollama-cloud|openrouter):/, '');
 
   for (const provider of PROVIDERS) {
     const model = provider.models.find((entry) => entry.id === normalizedId || entry.id === modelId);
