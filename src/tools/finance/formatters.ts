@@ -187,6 +187,33 @@ export function formatInsiderTrades(data: unknown): string {
   return lines.join('\n');
 }
 
+export function formatInsiderOwnership(data: unknown): string {
+  const items = Array.isArray(data) ? data : [];
+  if (items.length === 0) return 'No insider ownership statements found.';
+  const lines = ['Insider Ownership', ''];
+  lines.push('| Name | Title | Form | Holding | Security | Shares | D/I | As of |');
+  lines.push('|------|-------|------|---------|----------|--------|-----|-------|');
+  for (const row of items.slice(0, 15) as Rec[]) {
+    // Derivative rows (options, RSUs) report their size as underlying shares.
+    const shares = row.shares_owned ?? row.underlying_security_shares;
+    lines.push(`| ${row.name ?? '—'} | ${row.title ?? '—'} | ${row.form_type ?? '—'} | ${row.holding_type ?? '—'} | ${row.security_title ?? '—'} | ${fmtNum(shares)} | ${row.direct_or_indirect ?? '—'} | ${String(row.as_of_date ?? row.filing_date ?? '').slice(0, 10)} |`);
+  }
+  return lines.join('\n');
+}
+
+export function formatBeneficialOwnership(data: unknown): string {
+  const items = Array.isArray(data) ? data : [];
+  if (items.length === 0) return 'No beneficial ownership stakes found.';
+  const lines = ['Beneficial Ownership (5%+ stakes)', ''];
+  lines.push('| Owner | Ticker | Type | Form | % of Class | Shares | Filed |');
+  lines.push('|-------|--------|------|------|------------|--------|-------|');
+  for (const row of items.slice(0, 15) as Rec[]) {
+    const pct = row.percent_of_class != null ? `${row.percent_of_class}%` : '—';
+    lines.push(`| ${row.reporting_person_name ?? '—'} | ${row.ticker ?? '—'} | ${row.type ?? '—'} | ${row.form_type ?? '—'} | ${pct} | ${fmtNum(row.aggregate_amount_beneficially_owned)} | ${String(row.filing_date ?? '').slice(0, 10)} |`);
+  }
+  return lines.join('\n');
+}
+
 export function formatInstitutionalHoldings(data: unknown, args?: Rec): string {
   const items = Array.isArray(data) ? data : [];
   if (items.length === 0) return 'No institutional holdings found.';
@@ -350,5 +377,7 @@ export const MARKET_DATA_FORMATTERS: Record<string, (data: unknown, args?: Rec) 
   get_crypto_prices: formatStockPrices,
   get_company_news: formatNews,
   get_insider_trades: formatInsiderTrades,
+  get_insider_ownership: formatInsiderOwnership,
   get_institutional_holdings: formatInstitutionalHoldings,
+  get_beneficial_ownership: formatBeneficialOwnership,
 };
